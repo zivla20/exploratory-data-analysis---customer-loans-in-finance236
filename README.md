@@ -15,7 +15,7 @@ This project involves performing exploratory data analysis (EDA) on customer loa
 To set up the project locally, follow these steps:
 
 1. Clone the repository:
-   ``'bash
+   ```bash
    git clone https://github.com/zivla20/exploratory-data-analysis---customer-loans-in-finance236.git
    ```
    
