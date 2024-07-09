@@ -39,6 +39,24 @@ class Plotter:
         plt.xlabel(column)
         plt.ylabel('Frequency')
         plt.show()
+    
+    def plot_outliers(self, columns):
+        """Plot boxplots for given columns to visualize outliers."""
+        for column in columns:
+            plt.figure(figsize=(10,6))
+            sns.boxplot(x=self.df[column])
+            plt.title(f"Boxplot of {column}")
+            plt.xlabel(column)
+            plt.show
+
+    def plot_correlation_matrix(self):
+        """Plot the correlation matrix for the DataFrame."""
+        numeric_df = self.df.select_dtypes(include=[np.number])
+        corr_matrix = numeric_df.corr()
+        plt.figure(figsize=(12,10))
+        sns.heatmap(corr_matrix, annot = True, fmt='.2f', cmap = 'coolwarm', vmin=-1, vmax =1)
+        plt.title('Correlation Matrix')
+        plt.show()
 
 class DataFrameTransform:
     """A class to perform EDA transformations on the data."""
@@ -130,5 +148,68 @@ class DataFrameTransform:
                 best_transformations[column] = best_method
 
         return best_transformations
-        
+
+    def identify_outliers(self, threshold=1.5):
+        """Identify outliers using the IQR method."""
+        outliers = {}
+        for column in self.df.select_dtypes(include=['number']).columns:
+            Q1 = self.df[column].quantile(0.25)
+            Q3 = self.df[column].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - threshold * IQR
+            upper_bound = Q3 + threshold * IQR
+            outliers[column] = self.df[(self.df[column] < lower_bound) | (self.df[column] > upper_bound)].index.tolist()
+        return outliers  
+
+    def handle_outliers(self, columns, method='remove', threshold=1.5):
+        """Handle outliers in specified columns using the chosen method."""
+        for column in columns:
+            Q1 = self.df[column].quantile(0.25)
+            Q3 = self.df[column].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - threshold * IQR
+            upper_bound = Q3 + threshold * IQR
+
+            if method == 'remove':
+                self.df = self.df[(self.df[column] >= lower_bound) & (self.df[column] <= upper_bound)]
+            elif method == 'transform':
+                self.df.loc[self.df[column] < lower_bound, column] = lower_bound
+                self.df.loc[self.df[column] > upper_bound, column] = upper_bound
+        return self.df
+
+    def decide_outlier_handling(self, columns, skewness_threshold=1):
+        """Decide whether to remove or transform outliers based on skewness and impact on summary statistics."""
+        for column in columns:
+            skewness_before = self.df[column].skew()
+            mean_before = self.df[column].mean()
+            median_before = self.df[column].median()
+
+            # Try removing outliers
+            df_removed = self.handle_outliers([column], method='remove').copy()
+            skewness_removed = df_removed[column].skew()
+            mean_removed = df_removed[column].mean()
+            median_removed = df_removed[column].median()
+
+            # Try transforming outliers
+            df_transformed = self.handle_outliers([column], method='transform').copy()
+            skewness_transformed = df_transformed[column].skew()
+            mean_transformed = df_transformed[column].mean()
+            median_transformed = df_transformed[column].median()
+
+        if abs(skewness_removed) < abs(skewness_transformed) and abs(mean_removed - median_removed) < abs(mean_transformed - median_transformed):
+            self.df = df_removed
+            print(f"Removing outliers for column {column}")
+        else:
+            self.df = df_transformed
+            print(f"Transforming outliers for column {column}")
+
+        return self.df          
     
+    def remove_highly_correlated_columns(self, threshold = 0.9):
+        """Identify and remove highly correlated columns."""
+        numeric_df = self.df.select_dtypes(include=[np.number])
+        corr_matrix = numeric_df.corr()
+        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+        to_drop = [column for column in upper.columns if any(upper[column]>threshold)]
+        self.df.drop(columns = to_drop, inplace = True)
+        return to_drop

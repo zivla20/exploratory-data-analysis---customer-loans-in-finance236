@@ -11,6 +11,13 @@ Exploratory Data Analysis - Customer Loans in Finance
 ## Description
 This project involves performing exploratory data analysis (EDA) on customer loan payment data stored in an AWS RDS database. The aim of the project is to extract, transform, and analyze the data to gain insights into loan payment behaviors and patterns.
 
+### Objectives:
+- Extract data from AWS RDS database using Python and SQLAlchemy.
+- Clean and preprocess data to ensure quality and reliability.
+- Perform EDA to understand relationships and distributions within the dataset.
+- Visualize key insights using matplotlib and seaborn.
+- Document findings and insights in Jupyter notebooks for easy comprehension and future reference.
+
 ## Installation
 To set up the project locally, follow these steps:
 
@@ -25,24 +32,33 @@ To set up the project locally, follow these steps:
     ```
 3. Install the required dependencies:
     ```bash
-    pip install pandas sqlalchemy pyyaml boto3 psycopg2
+    pip install -r requirements.txt
     ```
-## Usage
 
-1. Run python db_utils.py to connect to the RDS database, fetch data, and save it locally as loan_payments.csv.
+## Usage Instructions
 
-2. Use python explore_data.py to load loan_payments.csv, perform EDA, and generate visualizations
+1. Ensure you have Python installed on your machine.
+2. Set up the database credentials in `credentials.yaml` (not included in the repository).
+3. Run the Jupyter notebooks (`analysis.ipynb`, `data_cleaning.ipynb`) to execute the data analysis and EDA steps.
+4. Refer to the notebooks for detailed explanations, visualizations, and insights derived from the data.
+
 
 ## File Structure
 The project structure is as follows:
 ```bash
-├── README.md
-├── db_utils.py         # Script for database connection and data extraction
-├── explore_data.py     # Script for exploratory data analysis and visualization
-├── credentials.yaml    # YAML file containing RDS database credentials
-├── loan_payments.csv   # CSV file storing extracted data from RDS
-├── requirements.txt    # List of Python dependencies
-└── .gitignore          # Git ignore file
+├── data/
+│ ├── loan_payments.csv # Processed data file
+├── notebooks/
+│ ├── analysis.ipynb # Jupyter notebook for data analysis
+│ ├── data_cleaning.ipynb # Jupyter notebook for data cleaning and preprocessing
+├── src/
+│ ├── db_utils.py # Python script for database utilities
+│ ├── data_transform.py # Class for data transformation methods
+│ ├── plotter.py # Class for visualization methods
+│ ├── dataframe_info.py # Class for DataFrame information methods
+├── credentials.yaml # Database credentials (ignored in git)
+├── README.md # Project README file
+├── requirements.txt # Python dependencies
 ```
 
 ## License
