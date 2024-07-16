@@ -58,6 +58,83 @@ class Plotter:
         plt.title('Correlation Matrix')
         plt.show()
 
+    def plot_recovery_rate(self, total_recovery_amount, total_funded_amount):
+        """
+        Plot recovery rate as a percentage of loans recovered against total funding.
+
+        Args:
+        - total_recovery_amount (float): Total amount recovered from loans.
+        - total_funded_amount (float): Total amount funded by investors.
+        """
+        # Calculate recovery rate
+        recovery_rate = (total_recovery_amount / total_funded_amount) * 100
+
+        # Plotting the recovery rate as a pie chart
+        labels = ['Recovered Amount', 'Remaining Funded Amount']
+        sizes = [total_recovery_amount, total_funded_amount - total_recovery_amount]
+        colors = ['#ff9999', '#66b3ff']
+
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.set_title('Recovery Rate: Percentage of loans recovered against investor funding')
+        plt.show()
+
+    def plot_recovery_rate_over_time(self, monthly_data):
+        """
+        Plot recovery rate over time using a line chart.
+        
+        Args:
+        - monthly_data (DataFrame): DataFrame with columns ['date', 'recovery_rate']
+        """
+        plt.figure(figsize=(10, 6))
+        plt.plot(monthly_data['date'], monthly_data['recovery_rate'], marker='o', linestyle='-', color='b')
+        plt.title('Recovery Rate Over Time')
+        plt.xlabel('Date')
+        plt.ylabel('Recovery Rate (%)')
+        plt.xticks(rotation=45)
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def plot_predicted_recovery(self, projected_recovery_percentage_6_months):
+        """
+        Plot predicted recovery percentage up to 6 months into the future.
+
+        Args:
+        - projected_recovery_percentage_6_months (float): Projected recovery percentage.
+        """
+        months = range(1, 7)  # Assuming projection is for up to 6 months
+        
+        plt.figure(figsize=(8, 5))
+        plt.plot(months, [projected_recovery_percentage_6_months] * len(months), marker='o', linestyle='-', color='g')
+        plt.title('Predicted Recovery Percentage Up to 6 Months')
+        plt.xlabel('Months')
+        plt.ylabel('Recovery Percentage (%)')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def plot_recovery_breakdown(self, total_recovery_amount, total_funded_amount):
+        """
+        Plot a breakdown of recovered amount versus funded amount.
+        
+        Args:
+        - total_recovery_amount (float): Total amount recovered from loans.
+        - total_funded_amount (float): Total amount funded by investors.
+        """
+        labels = ['Recovered Amount', 'Remaining Funded Amount']
+        sizes = [total_recovery_amount, total_funded_amount - total_recovery_amount]
+        colors = ['#ff9999','#66b3ff']
+        
+        plt.figure(figsize=(8, 6))
+        plt.bar(labels, sizes, color=colors)
+        plt.title('Breakdown of Recovered Amount vs. Remaining Funded Amount')
+        plt.xlabel('Category')
+        plt.ylabel('Amount')
+        plt.show()
+
+
 class DataFrameTransform:
     """A class to perform EDA transformations on the data."""
 
@@ -213,3 +290,43 @@ class DataFrameTransform:
         to_drop = [column for column in upper.columns if any(upper[column]>threshold)]
         self.df.drop(columns = to_drop, inplace = True)
         return to_drop
+
+    def calculate_recovery_rate(self):
+        # Ensure 'funded_amount' and 'recoveries' columns are present and numeric
+        try:
+            total_funded_amount = self.df['out_prncp_inv'].astype(float).sum()
+            total_recovery_amount = self.df['total_payment'].sum() + self.df['total_rec_int'].sum() + self.df['total_rec_late_fee'].sum()
+        except KeyError as e:
+            print(f"Column error: {e}")
+            return None
+        except ValueError as e:
+            print(f"Value error: {e}")
+            return None
+
+        recovery_rate = (total_recovery_amount / total_funded_amount) * 100
+        return recovery_rate, total_funded_amount, total_recovery_amount
+
+    def calculate_projected_recovery_6_months(self):
+        # Ensure 'last_payment_date' and 'recoveries' columns are present and numeric
+        try:
+            # Convert 'last_payment_date' to datetime
+            self.df['last_payment_date'] = pd.to_datetime(self.df['last_payment_date'], errors='coerce')
+
+            # Calculate the current date
+            current_date = pd.Timestamp.now()
+
+            # Calculate months since last payment using a valid method
+            self.df['months_since_last_payment'] = self.df['last_payment_date'].apply(lambda x: (current_date.year - x.year) * 12 + current_date.month - x.month)
+
+            # Calculate projected recovery rates for next 6 months
+            projected_recovery_6_months = self.df[self.df['months_since_last_payment'] <= 6]['recoveries'].astype(float).sum()
+            total_recoverable_amount = self.df['total_payment'].astype(float).sum() + self.df['recoveries'].astype(float).sum()
+        except KeyError as e:
+            print(f"Column error: {e}")
+            return None
+        except ValueError as e:
+            print(f"Value error: {e}")
+            return None
+
+        projected_recovery_percentage_6_months = (projected_recovery_6_months / total_recoverable_amount) * 100
+        return projected_recovery_percentage_6_months, total_recoverable_amount, projected_recovery_6_months
