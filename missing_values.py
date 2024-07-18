@@ -69,15 +69,22 @@ class Plotter:
         # Calculate recovery rate
         recovery_rate = (total_recovery_amount / total_funded_amount) * 100
 
-        # Plotting the recovery rate as a pie chart
-        labels = ['Recovered Amount', 'Remaining Funded Amount']
-        sizes = [total_recovery_amount, total_funded_amount - total_recovery_amount]
-        colors = ['#ff9999', '#66b3ff']
+        # Calculate remaining funded amount
+        remaining_funded_amount = total_funded_amount - total_recovery_amount
 
-        fig, ax = plt.subplots()
-        ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        ax.set_title('Recovery Rate: Percentage of loans recovered against investor funding')
+        # Create a DataFrame for pie chart
+        data = {
+            'Category': ['Recovered Amount', 'Remaining Funded Amount'],
+            'Amount': [total_recovery_amount, remaining_funded_amount]
+        }
+        df_pie = pd.DataFrame(data)
+
+        # Plotting the recovery rate as a pie chart
+        plt.figure(figsize=(8, 5))
+        plt.pie(df_pie['Amount'], labels=df_pie['Category'], autopct='%1.1f%%', startangle=90,
+                colors=['#ff9999', '#66b3ff'])
+        plt.title('Recovery Rate: Percentage of loans recovered against investor funding')
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         plt.show()
 
     def plot_recovery_rate_over_time(self, monthly_data):
