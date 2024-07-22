@@ -3,6 +3,7 @@ Exploratory Data Analysis - Customer Loans in Finance
 
 ## Table of Contents
 - [Description](#description)
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
 - [File Structure](#file-structure)
@@ -17,6 +18,13 @@ This project involves performing exploratory data analysis (EDA) on customer loa
 - Perform EDA to understand relationships and distributions within the dataset.
 - Visualize key insights using matplotlib and seaborn.
 - Document findings and insights in Jupyter notebooks for easy comprehension and future reference.
+
+## Prerequisites:
+Before setting up the project, ensure you have the following installed:
+- Python 3.7 or higher
+- Jupyter Notebook
+- AWS RDS Database setup
+- Git
 
 ## Installation
 To set up the project locally, follow these steps:
